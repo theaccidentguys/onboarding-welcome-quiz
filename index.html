@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAG Welcome Binder Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card-hover: #222633;
+    --accent: #f07030;
+    --accent-glow: rgba(240, 112, 48, 0.15);
+    --correct: #34d399;
+    --correct-bg: rgba(52, 211, 153, 0.1);
+    --wrong: #f87171;
+    --wrong-bg: rgba(248, 113, 113, 0.1);
+    --text: #e8e8ec;
+    --text-dim: #8b8d9a;
+    --border: #2a2d3a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .grain {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 128px;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header .tag-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-glow);
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    font-size: 2.4rem;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .header p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .progress-text {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-weight: 500;
+    min-width: 48px;
+    text-align: right;
+  }
+
+  /* Question card */
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    animation: fadeUp 0.45s ease-out;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-number {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .q-text {
+    font-size: 1.15rem;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    text-align: left;
+    transition: all 0.2s;
+  }
+
+  .option-btn:hover:not(.locked) {
+    background: var(--card-hover);
+    border-color: #3a3e4e;
+  }
+
+  .option-btn .letter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    background: var(--border);
+    color: var(--text-dim);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .option-btn.selected {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .option-btn.selected .letter {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .option-btn.correct {
+    border-color: var(--correct);
+    background: var(--correct-bg);
+  }
+
+  .option-btn.correct .letter {
+    background: var(--correct);
+    color: var(--bg);
+  }
+
+  .option-btn.wrong {
+    border-color: var(--wrong);
+    background: var(--wrong-bg);
+  }
+
+  .option-btn.wrong .letter {
+    background: var(--wrong);
+    color: var(--bg);
+  }
+
+  .option-btn.locked { cursor: default; }
+
+  .feedback {
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    animation: fadeUp 0.3s ease-out;
+  }
+
+  .feedback.correct-fb {
+    background: var(--correct-bg);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    color: var(--correct);
+  }
+
+  .feedback.wrong-fb {
+    background: var(--wrong-bg);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    color: var(--wrong);
+  }
+
+  .next-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  .next-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(240, 112, 48, 0.25);
+  }
+
+  /* Results */
+  .results {
+    text-align: center;
+    animation: fadeUp 0.5s ease-out;
+  }
+
+  .results .score-ring {
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 28px;
+    position: relative;
+  }
+
+  .results .score-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .results .score-ring circle {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+  }
+
+  .results .score-ring .track { stroke: var(--border); }
+  .results .score-ring .fill-ring {
+    stroke: var(--accent);
+    stroke-dasharray: 440;
+    stroke-dashoffset: 440;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .results .score-ring .fill-ring.perfect { stroke: var(--correct); }
+
+  .results .score-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .results .score-label .big {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .results .score-label .sub {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .results h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+
+  .results p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    max-width: 420px;
+    margin: 0 auto 28px;
+    line-height: 1.5;
+  }
+
+  .name-input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 16px;
+  }
+
+  .name-input:focus {
+    border-color: var(--accent);
+  }
+
+  .name-input::placeholder {
+    color: var(--text-dim);
+  }
+
+  .email-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 12px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin-right: 12px;
+    margin-bottom: 10px;
+  }
+
+  .email-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(240, 112, 48, 0.25);
+  }
+
+  .retry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--accent);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .retry-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="container">
+  <div class="header">
+    <div class="tag-label">The Accident Guys</div>
+    <h1>Welcome Binder Quiz</h1>
+    <p>10 quick questions to make sure you're ready to hit the ground running.</p>
+  </div>
+
+  <div id="name-screen">
+    <div class="question-card" style="text-align:center;">
+      <div class="q-number">Before we begin</div>
+      <div class="q-text">Enter your full name so we can include it in your results.</div>
+      <input type="text" class="name-input" id="name-input" placeholder="Your full name" />
+      <button class="next-btn" id="start-btn" onclick="startQuiz()">Start Quiz →</button>
+    </div>
+  </div>
+
+  <div id="quiz-area" class="hidden">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+      <div class="progress-text" id="progress-text">1 / 10</div>
+    </div>
+    <div class="question-card" id="card"></div>
+  </div>
+
+  <div id="results-area" class="results hidden"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    q: "What is the name of The Accident Guys' case management system?",
+    options: ["Slack", "CoCo (Salesforce/CoCounselor)", "Dropbox", "ADP"],
+    correct: 1,
+    explanation: "CoCo (Salesforce/CoCounselor) is the case management system used to access client files, review case details, and track progress."
+  },
+  {
+    q: "Who will welcome you and conduct your orientation on your first day?",
+    options: ["Eliot Houman", "Karla Saldivar", "Sam, the Director of Operations", "Afshin Azizi"],
+    correct: 2,
+    explanation: "Sam (Director of Operations) handles new employee orientation, I-9 documents, the Welcome Binder review, and distributing office keys."
+  },
+  {
+    q: "When do paid holidays become effective for new employees?",
+    options: ["Immediately on Day 1", "After 30 days", "After 90 days", "After 1 year"],
+    correct: 2,
+    explanation: "Paid holidays become effective on the 90th day of employment."
+  },
+  {
+    q: "What should you do with personal items stored in the breakroom fridge?",
+    options: ["Nothing — the fridge is cleaned monthly", "Label them — unlabeled items are tossed every Friday", "Remove them daily", "Store them in a personal locker"],
+    correct: 1,
+    explanation: "You must label personal items in the fridge because unlabeled items are disposed of every Friday."
+  },
+  {
+    q: "When can you start choosing your preferred work schedule?",
+    options: ["Day 1", "After your first 2 weeks", "After 30 days", "After 90 days"],
+    correct: 1,
+    explanation: "After completing your first two weeks, you can choose from one of the three schedule options."
+  },
+  {
+    q: "How should you request time off?",
+    options: ["Email your supervisor directly", "Submit a request through ADP", "Post in Slack", "Fill out a paper form from HR"],
+    correct: 1,
+    explanation: "All time off requests must be submitted in advance through ADP and require approval."
+  },
+  {
+    q: "What is the dress code for Mondays through Thursdays?",
+    options: ["Business casual", "Professional business attire", "Smart casual", "Casual — jeans and t-shirts are fine"],
+    correct: 1,
+    explanation: "Monday through Thursday requires professional business attire appropriate for a legal setting."
+  },
+  {
+    q: "On which floor is The Accident Guys' office located?",
+    options: ["2nd floor", "3rd floor", "4th floor", "5th floor"],
+    correct: 2,
+    explanation: "The office is on the 4th floor — you scan your key card inside the elevator, then press the 4th floor button."
+  },
+  {
+    q: "What does the abbreviation 'DOL' stand for at TAG?",
+    options: ["Department of Labor", "Date of Loss", "Director of Litigation", "Duration of Leave"],
+    correct: 1,
+    explanation: "DOL stands for 'Date of Loss' — a key term used in personal injury case management."
+  },
+  {
+    q: "How many vacation days per year do employees receive after their 1st year anniversary?",
+    options: ["5 days", "10 days", "15 days", "20 days"],
+    correct: 1,
+    explanation: "After the 1st year anniversary, vacation increases to 10 days per year. It increases to 15 days at the 4th year anniversary."
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+let employeeName = '';
+
+const nameScreen = document.getElementById('name-screen');
+const card = document.getElementById('card');
+const progressBar = document.getElementById('progress');
+const progressText = document.getElementById('progress-text');
+const quizArea = document.getElementById('quiz-area');
+const resultsArea = document.getElementById('results-area');
+const nameInput = document.getElementById('name-input');
+
+nameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') startQuiz();
+});
+
+function startQuiz() {
+  employeeName = nameInput.value.trim();
+  if (!employeeName) {
+    nameInput.style.borderColor = 'var(--wrong)';
+    nameInput.focus();
+    return;
+  }
+  nameScreen.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const letters = ['A','B','C','D'];
+  card.innerHTML = `
+    <div class="q-number">Question ${current + 1}</div>
+    <div class="q-text">${q.q}</div>
+    <div class="options">
+      ${q.options.map((opt, i) => `
+        <button class="option-btn" data-index="${i}" onclick="selectAnswer(${i})">
+          <span class="letter">${letters[i]}</span>
+          <span>${opt}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+  progressBar.style.width = ((current) / questions.length * 100) + '%';
+  progressText.textContent = `${current + 1} / ${questions.length}`;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[current];
+  const btns = card.querySelectorAll('.option-btn');
+  btns.forEach(b => b.classList.add('locked'));
+
+  const isCorrect = idx === q.correct;
+  if (isCorrect) score++;
+
+  btns[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) btns[q.correct].classList.add('correct');
+
+  const fb = document.createElement('div');
+  fb.className = `feedback ${isCorrect ? 'correct-fb' : 'wrong-fb'}`;
+  fb.textContent = isCorrect ? `✓ Correct! ${q.explanation}` : `✗ Not quite. ${q.explanation}`;
+  card.appendChild(fb);
+
+  const btn = document.createElement('button');
+  btn.className = 'next-btn';
+  btn.textContent = current < questions.length - 1 ? 'Next Question →' : 'See Results →';
+  btn.onclick = () => {
+    current++;
+    if (current < questions.length) {
+      card.style.animation = 'none';
+      void card.offsetWidth;
+      card.style.animation = 'fadeUp 0.45s ease-out';
+      renderQuestion();
+    } else {
+      showResults();
+    }
+  };
+  card.appendChild(btn);
+
+  progressBar.style.width = ((current + 1) / questions.length * 100) + '%';
+}
+
+function showResults() {
+  quizArea.classList.add('hidden');
+  resultsArea.classList.remove('hidden');
+
+  const pct = Math.round(score / questions.length * 100);
+  const perfect = score === questions.length;
+  const circumference = 2 * Math.PI * 70;
+  const offset = circumference - (score / questions.length) * circumference;
+
+  let message, subtitle;
+  if (pct === 100) { message = "Flawless!"; subtitle = "You clearly paid attention to every detail. Welcome to the team — you're already ahead of the game."; }
+  else if (pct >= 80) { message = "Great Job!"; subtitle = "You've got a solid grasp of the material. Give the binder one more skim for the details you missed."; }
+  else if (pct >= 60) { message = "Good Start!"; subtitle = "You know the basics but missed some important details. Review the binder again and retake the quiz."; }
+  else { message = "Needs Review"; subtitle = "Take some more time with the Welcome Binder — it's packed with info you'll need every day. You've got this!"; }
+
+  resultsArea.innerHTML = `
+    <div class="score-ring">
+      <svg viewBox="0 0 160 160">
+        <circle class="track" cx="80" cy="80" r="70" />
+        <circle class="fill-ring ${perfect ? 'perfect' : ''}" id="ring" cx="80" cy="80" r="70"
+          style="stroke-dasharray:${circumference}; stroke-dashoffset:${circumference};" />
+      </svg>
+      <div class="score-label">
+        <span class="big">${pct}%</span>
+        <span class="sub">${score} of ${questions.length}</span>
+      </div>
+    </div>
+    <h2>${message}</h2>
+    <p>${subtitle}</p>
+    <div>
+      <button class="email-btn" onclick="emailResults(${pct})">✉ Email Results to HR</button>
+      <button class="retry-btn" onclick="restart()">↻ Retake Quiz</button>
+    </div>
+  `;
+
+  requestAnimationFrame(() => {
+    document.getElementById('ring').style.strokeDashoffset = offset;
+  });
+}
+
+function emailResults(pct) {
+  const subject = encodeURIComponent('Welcome Binder Quiz Results - ' + employeeName);
+  const body = encodeURIComponent('Hi HR,\n\nI\'ve completed the Welcome Binder Quiz.\n\nName: ' + employeeName + '\nScore: ' + score + ' out of ' + questions.length + ' (' + pct + '%)\n\nThank you!');
+  window.open('mailto:hr@calltheaccidentguys.com?subject=' + subject + '&body=' + body, '_blank');
+}
+
+function restart() {
+  current = 0;
+  score = 0;
+  quizArea.classList.remove('hidden');
+  resultsArea.classList.add('hidden');
+  renderQuestion();
+}
+
+</script>
+</body>
+</html>
