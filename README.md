@@ -1,1 +1,1 @@
-# cm-welcome-quiz
+# onboarding-welcome-quiz
