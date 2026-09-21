@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAG Welcome Binder Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card-hover: #222633;
+    --accent: #f07030;
+    --accent-glow: rgba(240, 112, 48, 0.15);
+    --correct: #34d399;
+    --correct-bg: rgba(52, 211, 153, 0.1);
+    --wrong: #f87171;
+    --wrong-bg: rgba(248, 113, 113, 0.1);
+    --text: #e8e8ec;
+    --text-dim: #8b8d9a;
+    --border: #2a2d3a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .grain {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 128px;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header .tag-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-glow);
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    font-size: 2.4rem;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .header p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .progress-text {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-weight: 500;
+    min-width: 48px;
+    text-align: right;
+  }
+
+  /* Question card */
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    animation: fadeUp 0.45s ease-out;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-number {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .q-text {
+    font-size: 1.15rem;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    text-align: left;
+    transition: all 0.2s;
+  }
+
+  .option-btn:hover:not(.locked) {
+    background: var(--card-hover);
+    border-color: #3a3e4e;
+  }
+
+  .option-btn .letter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    background: var(--border);
+    color: var(--text-dim);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .option-btn.selected {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .option-btn.selected .letter {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .option-btn.correct {
+    border-color: var(--correct);
+    background: var(--correct-bg);
+  }
+
+  .option-btn.correct .letter {
+    background: var(--correct);
+    color: var(--bg);
+  }
+
+  .option-btn.wrong {
+    border-color: var(--wrong);
+    background: var(--wrong-bg);
+  }
+
+  .option-btn.wrong .letter {
+    background: var(--wrong);
+    color: var(--bg);
+  }
+
+  .option-btn.locked { cursor: default; }
+
+  .feedback {
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    animation: fadeUp 0.3s ease-out;
+  }
+
+  .feedback.correct-fb {
+    background: var(--correct-bg);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    color: var(--correct);
+  }
+
+  .feedback.wrong-fb {
+    background: var(--wrong-bg);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    color: var(--wrong);
+  }
+
+  .next-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  .next-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(240, 112, 48, 0.25);
+  }
+
+  /* Results */
+  .results {
+    text-align: center;
+    animation: fadeUp 0.5s ease-out;
+  }
+
+  .results .score-ring {
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 28px;
+    position: relative;
+  }
+
+  .results .score-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .results .score-ring circle {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+  }
+
+  .results .score-ring .track { stroke: var(--border); }
+  .results .score-ring .fill-ring {
+    stroke: var(--accent);
+    stroke-dasharray: 440;
+    stroke-dashoffset: 440;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .results .score-ring .fill-ring.perfect { stroke: var(--correct); }
+
+  .results .score-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .results .score-label .big {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .results .score-label .sub {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .results h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+
+  .results p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    max-width: 420px;
+    margin: 0 auto 28px;
+    line-height: 1.5;
+  }
+
+  .name-input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 16px;
+  }
+
+  .name-input:focus {
+    border-color: var(--accent);
+  }
+
+  .name-input::placeholder {
+    color: var(--text-dim);
+  }
+
+  .email-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 12px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin-right: 12px;
+    margin-bottom: 10px;
+  }
+
+  .email-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(240, 112, 48, 0.25);
+  }
+
+  .retry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--accent);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .retry-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="container">
+  <div class="header">
+    <div class="tag-label">The Accident Guys</div>
+    <h1>Welcome Binder Quiz</h1>
+    <p>20 quick questions to make sure you're ready to hit the ground running.</p>
+  </div>
+
+  <div id="name-screen">
+    <div class="question-card" style="text-align:center;">
+      <div class="q-number">Before we begin</div>
+      <div class="q-text">Enter your full name so we can include it in your results.</div>
+      <input type="text" class="name-input" id="name-input" placeholder="Your full name" />
+      <button class="next-btn" id="start-btn" onclick="startQuiz()">Start Quiz →</button>
+    </div>
+  </div>
+
+  <div id="quiz-area" class="hidden">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+      <div class="progress-text" id="progress-text">1 / 20</div>
+    </div>
+    <div class="question-card" id="card"></div>
+  </div>
+
+  <div id="results-area" class="results hidden"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    q: "During your first six months of employment, where must your personal cell phone be stored during working hours?",
+    options: ["On your desk, face down", "In your pocket or purse", "Anywhere as long as it is silenced", "In your personal vehicle or the Company-designated phone locker"],
+    correct: 3,
+    explanation: "The correct answer is: In your personal vehicle or the Company-designated phone locker"
+  },
+  {
+    q: "You bring your personal phone into the office during your first six months. When must you put it in your assigned locker?",
+    options: ["Before clocking in", "Within 15 minutes after clocking in", "Before the first scheduled break", "Whenever a supervisor reminds you"],
+    correct: 0,
+    explanation: "The correct answer is: Before clocking in"
+  },
+  {
+    q: "During your first six months, when may you retrieve your personal phone under the Cell Phone Policy?",
+    options: ["Any time if you keep the use under one minute", "During scheduled rest breaks, meal periods, or after clocking out", "Whenever work is slow", "Only when a client is not present"],
+    correct: 1,
+    explanation: "The correct answer is: During scheduled rest breaks, meal periods, or after clocking out"
+  },
+  {
+    q: "After successfully completing six months of employment, what changes regarding possession of your personal phone during working hours?",
+    options: ["You may leave it visible on your workstation", "You may use it freely whenever you have no assignments", "You may keep it with you if it remains out of sight and is not used or accessed during working hours", "You must continue using the phone locker permanently"],
+    correct: 2,
+    explanation: "The correct answer is: You may keep it with you if it remains out of sight and is not used or accessed during working hours"
+  },
+  {
+    q: "You want to request a future day off. What is the appropriate first step described in the Welcome Binder?",
+    options: ["Tell a coworker who can cover your work", "Add the absence to your personal calendar", "Submit the request in advance through ADP", "Assume the request is approved after submission"],
+    correct: 2,
+    explanation: "The correct answer is: Submit the request in advance through ADP"
+  },
+  {
+    q: "If you submit a time-off request, what should you assume until you receive confirmation?",
+    options: ["The request is approved unless HR denies it within 24 hours", "The request is still pending and you should wait before making plans", "The request is approved if you have enough PTO", "The request is automatically approved"],
+    correct: 1,
+    explanation: "The correct answer is: The request is still pending and you should wait before making plans"
+  },
+  {
+    q: "You are taking more than one day off. In addition to the time-off request, what does the Welcome Binder require?",
+    options: ["Forward all client emails to a coworker's personal email", "Give your office keys to your supervisor", "Review the instructions pinned in the #general chat in Slack on how to set your Out of Office automatic reply", "Change your Slack status for the entire month"],
+    correct: 2,
+    explanation: "The correct answer is: Review the instructions pinned in the #general chat in Slack on how to set your Out of Office automatic reply"
+  },
+  {
+    q: "You are unexpectedly sick or running late. According to the Welcome Binder's time-off procedure, what should you do?",
+    options: ["Submit the information at the end of the pay period", "Wait until you arrive and explain what happened", "Only tell the receptionist", "Email HR as soon as possible"],
+    correct: 3,
+    explanation: "The correct answer is: Email HR as soon as possible"
+  },
+  {
+    q: "How long is the standard lunch break unless prior approval is received for a shorter lunch?",
+    options: ["30 minutes", "45 minutes", "1 hour", "90 minutes"],
+    correct: 2,
+    explanation: "The correct answer is: 1 hour"
+  },
+  {
+    q: "How should the two optional 10-minute paid rest breaks be taken?",
+    options: ["Saved and used to leave 20 minutes early", "Added to the lunch period", "Combined into one 20-minute break", "Taken separately and not combined with each other or lunch"],
+    correct: 3,
+    explanation: "The correct answer is: Taken separately and not combined with each other or lunch"
+  },
+  {
+    q: "When is overtime permitted under the schedule guidance in the Welcome Binder?",
+    options: ["Only with prior approval from a Supervisor or Management", "Whenever you need extra time to finish your work", "Whenever you voluntarily skip a rest break", "Any Friday after 4:30 PM"],
+    correct: 0,
+    explanation: "The correct answer is: Only with prior approval from a Supervisor or Management"
+  },
+  {
+    q: "Which platform is described as The Accident Guys' primary communication hub for team conversations, updates, announcements, and quick check-ins?",
+    options: ["Slack", "CoCo", "ADP", "Dropbox"],
+    correct: 0,
+    explanation: "The correct answer is: Slack"
+  },
+  {
+    q: "What is CoCo primarily used for?",
+    options: ["Requesting vacation and sick leave", "Storing all client documents and internal templates", "Sending team announcements and quick check-ins", "Accessing client files, updating case details, adding notes, and tracking case progress"],
+    correct: 3,
+    explanation: "The correct answer is: Accessing client files, updating case details, adding notes, and tracking case progress"
+  },
+  {
+    q: "What should employees do with personal food placed in the breakroom refrigerator?",
+    options: ["Label personal items", "Store it at the workstation instead", "Write only the department name on it", "Leave it unlabeled if it will be eaten that week"],
+    correct: 0,
+    explanation: "The correct answer is: Label personal items"
+  },
+  {
+    q: "Which statement best reflects the firm’s expectations regarding socializing during work hours?",
+    options: ["Employees should avoid all non-work conversations during the workday", "Friendly conversation is welcome, but employees should be mindful of volume and timing so it does not distract others or affect productivity", "Socializing is permitted only during lunch and scheduled breaks", "Employees may socialize freely as long as their own work is completed"],
+    correct: 1,
+    explanation: "The correct answer is: Friendly conversation is welcome, but employees should be mindful of volume and timing so it does not distract others or affect productivity"
+  },
+  {
+    q: "Which statement accurately reflects the firm's policy for company computers and communication tools?",
+    options: ["Personal browsing is permitted during any slow period", "Slack and email may be used for any personal conversation as long as it is brief", "They are intended for work-related tasks and should not be used for non-work browsing or personal matters", "They may be used for personal matters whenever client work is complete"],
+    correct: 2,
+    explanation: "The correct answer is: They are intended for work-related tasks and should not be used for non-work browsing or personal matters"
+  },
+  {
+    q: "It is Friday and you are wearing clean, well-maintained jeans with no rips, holes, or tears. Under the Welcome Binder's casual-day dress code, is this permitted?",
+    options: ["Only if worn with open-toe shoes", "No, jeans are prohibited every day", "Yes, clean and undamaged jeans are allowed on casual days", "Only if the jeans have distressed sections"],
+    correct: 2,
+    explanation: "The correct answer is: Yes, clean and undamaged jeans are allowed on casual days"
+  },
+  {
+    q: "What does the Attendance & Time-Off Policy say about repeated tardiness?",
+    options: ["It may lead to formal disciplinary action, up to and including termination", "It matters only after an employee's first year", "It has no consequence if the employee makes up the time later", "It is acceptable when each instance is only a few minutes"],
+    correct: 0,
+    explanation: "The correct answer is: It may lead to formal disciplinary action, up to and including termination"
+  },
+  {
+    q: "When are employees eligible to start using sick leave according to the Welcome Binder?",
+    options: ["After 90 calendar days", "On Day 1 of employment", "After the first-year anniversary", "After 30 calendar days"],
+    correct: 0,
+    explanation: "The correct answer is: After 90 calendar days"
+  },
+  {
+    q: "You have completed your first six months and keep your phone in a desk drawer. When may you use it for personal purposes under the Cell Phone Policy?",
+    options: ["Whenever your current assignment is finished", "Whenever it is out of sight", "Any time after the six-month restriction ends", "During scheduled rest breaks, meal periods, before clocking in, or after clocking out"],
+    correct: 3,
+    explanation: "The correct answer is: During scheduled rest breaks, meal periods, before clocking in, or after clocking out"
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+let employeeName = '';
+
+const nameScreen = document.getElementById('name-screen');
+const card = document.getElementById('card');
+const progressBar = document.getElementById('progress');
+const progressText = document.getElementById('progress-text');
+const quizArea = document.getElementById('quiz-area');
+const resultsArea = document.getElementById('results-area');
+const nameInput = document.getElementById('name-input');
+
+nameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') startQuiz();
+});
+
+function startQuiz() {
+  employeeName = nameInput.value.trim();
+  if (!employeeName) {
+    nameInput.style.borderColor = 'var(--wrong)';
+    nameInput.focus();
+    return;
+  }
+  nameScreen.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const letters = ['A','B','C','D'];
+  card.innerHTML = `
+    <div class="q-number">Question ${current + 1}</div>
+    <div class="q-text">${q.q}</div>
+    <div class="options">
+      ${q.options.map((opt, i) => `
+        <button class="option-btn" data-index="${i}" onclick="selectAnswer(${i})">
+          <span class="letter">${letters[i]}</span>
+          <span>${opt}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+  progressBar.style.width = ((current) / questions.length * 100) + '%';
+  progressText.textContent = `${current + 1} / ${questions.length}`;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[current];
+  const btns = card.querySelectorAll('.option-btn');
+  btns.forEach(b => b.classList.add('locked'));
+
+  const isCorrect = idx === q.correct;
+  if (isCorrect) score++;
+
+  btns[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) btns[q.correct].classList.add('correct');
+
+  const fb = document.createElement('div');
+  fb.className = `feedback ${isCorrect ? 'correct-fb' : 'wrong-fb'}`;
+  fb.textContent = isCorrect ? `✓ Correct! ${q.explanation}` : `✗ Not quite. ${q.explanation}`;
+  card.appendChild(fb);
+
+  const btn = document.createElement('button');
+  btn.className = 'next-btn';
+  btn.textContent = current < questions.length - 1 ? 'Next Question →' : 'See Results →';
+  btn.onclick = () => {
+    current++;
+    if (current < questions.length) {
+      card.style.animation = 'none';
+      void card.offsetWidth;
+      card.style.animation = 'fadeUp 0.45s ease-out';
+      renderQuestion();
+    } else {
+      showResults();
+    }
+  };
+  card.appendChild(btn);
+
+  progressBar.style.width = ((current + 1) / questions.length * 100) + '%';
+}
+
+function showResults() {
+  quizArea.classList.add('hidden');
+  resultsArea.classList.remove('hidden');
+
+  const pct = Math.round(score / questions.length * 100);
+  const perfect = score === questions.length;
+  const circumference = 2 * Math.PI * 70;
+  const offset = circumference - (score / questions.length) * circumference;
+
+  let message, subtitle;
+  if (pct === 100) { message = "Flawless!"; subtitle = "You clearly paid attention to every detail. Welcome to the team — you're already ahead of the game."; }
+  else if (pct >= 80) { message = "Great Job!"; subtitle = "You've got a solid grasp of the material. Give the binder one more skim for the details you missed."; }
+  else if (pct >= 60) { message = "Good Start!"; subtitle = "You know the basics but missed some important details. Review the binder again and retake the quiz."; }
+  else { message = "Needs Review"; subtitle = "Take some more time with the Welcome Binder — it's packed with info you'll need every day. You've got this!"; }
+
+  resultsArea.innerHTML = `
+    <div class="score-ring">
+      <svg viewBox="0 0 160 160">
+        <circle class="track" cx="80" cy="80" r="70" />
+        <circle class="fill-ring ${perfect ? 'perfect' : ''}" id="ring" cx="80" cy="80" r="70"
+          style="stroke-dasharray:${circumference}; stroke-dashoffset:${circumference};" />
+      </svg>
+      <div class="score-label">
+        <span class="big">${pct}%</span>
+        <span class="sub">${score} of ${questions.length}</span>
+      </div>
+    </div>
+    <h2>${message}</h2>
+    <p>${subtitle}</p>
+    <div>
+      <button class="email-btn" onclick="emailResults(${pct})">✉ Email Results to HR</button>
+      <button class="retry-btn" onclick="restart()">↻ Retake Quiz</button>
+    </div>
+  `;
+
+  requestAnimationFrame(() => {
+    document.getElementById('ring').style.strokeDashoffset = offset;
+  });
+}
+
+function emailResults(pct) {
+  const subject = encodeURIComponent('Welcome Binder Quiz Results - ' + employeeName);
+  const body = encodeURIComponent('Hi HR,\n\nI\'ve completed the Welcome Binder Quiz.\n\nName: ' + employeeName + '\nScore: ' + score + ' out of ' + questions.length + ' (' + pct + '%)\n\nThank you!');
+  window.open('mailto:hr@calltheaccidentguys.com?subject=' + subject + '&body=' + body, '_blank');
+}
+
+function restart() {
+  current = 0;
+  score = 0;
+  quizArea.classList.remove('hidden');
+  resultsArea.classList.add('hidden');
+  renderQuestion();
+}
+
+</script>
+</body>
+</html>
